@@ -29,6 +29,23 @@ Sağ üst köşedeki "Giriş" butonuna tıklayarak size özel şifre ile sisteme
 
 <img width="653" height="390" alt="image" src="https://github.com/user-attachments/assets/adac7b1a-ea6b-4c16-a9fe-90bf0835ba5a" />
 
+Versiyon 2.0 Geliştirmesi
+
+
+Dinamik Sınav Takvimi: Artık sistem sadece konuları değil, sınav tarihlerini de takip ediyor. PDF formatındaki karmaşık sınav takvimini dijitalleştirerek, herkesin kolayca anlayabileceği bir yapıya dönüştürdüm. 
+
+<img width="417" height="125" alt="image" src="https://github.com/user-attachments/assets/5e75997f-b40a-406f-a7a0-fc33db515b2d" />
+
+Akıllı Sıralama Algoritması: Dersleri artık rastgele değil, sınav tarihine göre listeliyoruz. Tarihi en yakın olan sınav otomatik olarak en başa yerleşiyor, böylece "ilk neye çalışmalıyım?" sorusu anında yanıtlanıyor. 
+
+Toplu Veri Girişi (Admin): Yönetici moduna eklediğim özel bir arayüzle, tüm sınav takvimini tek seferde, hızlıca sisteme aktarabiliyorum. Bu sayede manuel veri girişiyle zaman kaybetmiyorum.
+<img width="1064" height="662" alt="image" src="https://github.com/user-attachments/assets/7963be5d-03af-483f-8a4c-a08a319c7e9d" />
+
+
+Mobil Öncelikli (Responsive) Tasarım: Sınav bilgilerinin (Gün ve Saat) küçük ekranlarda ders adıyla uyumsuz görünmesini engellemek için esnek bir yapı kurdum. Bilgiler artık sığmadığında "birlikte hareket ederek" düzenli bir şekilde alt satıra geçiyor.
+
+Firebase Entegrasyonu: Tüm veriler Firestore üzerinde gerçek zamanlı (real-time) tutuluyor. Bir veri güncellendiğinde, sayfayı yenilemeye gerek kalmadan tüm arkadaşlarımdaki liste anında güncelleniyor.
+
 
 💻 Kullanılan Teknolojiler
 Frontend: HTML5, CSS3 (Bootstrap 5)
@@ -43,4 +60,4 @@ Bu proje tamamen tarafımdan geliştirilmiştir. Tüm hakları saklıdır.
 Geliştirici: M.Enes Yalçın Yıl: 2026
 
 ## 🔗 Canlı Önizleme
-Projeyi canlı olarak buradan inceleyebilirsiniz: [Sınav Takvimi Canlı Demo](https://kullaniciadi.github.io/proje-adi/)
+Projeyi canlı olarak buradan inceleyebilirsiniz: [Sınav Takvimi Canlı Demo](https://heisenberg1098.github.io/SinavKonu/)
