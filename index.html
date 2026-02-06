@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sınav Konu Takip Sistemi</title>
-    <link rel="icon" type="image/png" href="ME.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Dancing+Script:wght@600&display=swap"
@@ -147,6 +146,24 @@
             color: white;
             border-radius: 15px 15px 0 0;
         }
+
+
+
+        /* Ders ismi ve sınav bilgisini yan yana tutan grup */
+        .course-info-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            /* Sığmazsa aşağı atar */
+            align-items: center;
+        }
+
+        .exam-tag {
+            white-space: nowrap;
+            color: var(--primary-color);
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+        }
     </style>
 </head>
 
@@ -160,9 +177,11 @@
             </a>
             <div>
                 <span id="adminBadge" class="badge bg-success d-none me-2">Yönetici Modu</span>
+
                 <button class="btn btn-outline-light btn-sm" id="loginBtn" data-bs-toggle="modal"
                     data-bs-target="#adminModal">Giriş</button>
             </div>
+
         </div>
     </nav>
 
@@ -182,6 +201,10 @@
                     <button class="btn btn-outline-primary" onclick="updatePeriod('2. Dönem 2. Yazılı')">2.D
                         2.Y</button>
                 </div>
+                <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#bulkExamModal">
+                    📅 Takvim Gir
+                </button>
+
             </div>
         </div>
     </div>
@@ -208,7 +231,8 @@
 
     <footer>
         <div class="container">
-            © 2026 Tüm Hakları Saklıdır<p class="mb-0 text-white"> <span class="signature">M.Enes Yalçın</span> Tarafından Yapılmıştır</p>
+            © 2026 Tüm Hakları Saklıdır<p class="mb-0 text-white"> <span class="signature">M.Enes Yalçın</span>
+                Tarafından Yapılmıştır</p>
         </div>
     </footer>
 
@@ -226,6 +250,25 @@
                         placeholder="Şifre">
                     <button class="btn  w-100 mt-3 py-2" style="background-color: #00C9E2;color:#D6FFFF ;"
                         onclick="checkAdminPassword()">Giriş Yap</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="bulkExamModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title w-100 text-center">Toplu Sınav Takvimi Girişi</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="small text-muted mb-3">Her satıra bir sınav gelecek şekilde şu formatta yazın:<br>
+                        <b>Ders İsmi, YYYY-MM-DD, Saat</b> (Örn: Matematik, 2025-12-25, 3. Ders)
+                    </p>
+                    <textarea id="bulkExamInput" class="form-control" rows="10"
+                        placeholder="Türk Dili ve Edebiyatı, 2025-12-22, 7. Ders&#10;Yabancı Dil, 2025-12-23, 5. Ders"></textarea>
+                    <button class="btn btn-add w-100 mt-3 py-2" onclick="processBulkExams()">Takvimi Güncelle</button>
                 </div>
             </div>
         </div>
@@ -335,20 +378,61 @@
             { name: "Yabancı Dil", teacher: "Burak Bekret" }
         ];
 
-        window.onload = () => {
+        window.onload = async () => {
             const container = document.getElementById('courseContainer');
             const select = document.getElementById('courseSelect');
-            select.innerHTML = courses.map(c => `<option>${c.name}</option>`).join('');
 
-            container.innerHTML = courses.map((c, i) => `
-            <div class="course-card">
-                <div class="course-header" data-bs-toggle="collapse" data-bs-target="#c${i}">
-                    <div><div class="course-title">${c.name}</div><div class="teacher-name">${c.teacher}</div></div>
-                    <span>▼</span>
-                </div>
-                <div id="c${i}" class="collapse"><div class="topics-list" id="list-${c.name.replace(/\s+/g, '')}"></div></div>
+            // Sınav tarihlerini ve dersleri anlık izle
+            onSnapshot(collection(db, "examDates"), (examSnap) => {
+                onSnapshot(collection(db, "courses"), (courseSnap) => {
+                    const examDates = {};
+                    examSnap.forEach(doc => { examDates[doc.id] = doc.data(); });
+
+                    const allCourses = [];
+                    courseSnap.forEach(doc => { allCourses.push(doc.data()); });
+
+                    // Sıralama: En yakın sınav en üstte
+                    const sortedCourses = allCourses.sort((a, b) => {
+                        const dateA = examDates[a.name] ? new Date(examDates[a.name].examDate) : new Date(8640000000000000);
+                        const dateB = examDates[b.name] ? new Date(examDates[b.name].examDate) : new Date(8640000000000000);
+                        return dateA - dateB;
+                    });
+
+                    select.innerHTML = sortedCourses.map(c => `<option>${c.name}</option>`).join('');
+
+                    container.innerHTML = sortedCourses.map((c, i) => {
+                        const examInfo = examDates[c.name];
+                        let examTag = "";
+
+                        if (examInfo) {
+                            const dateObj = new Date(examInfo.examDate);
+                            const dayName = dateObj.toLocaleDateString('tr-TR', { weekday: 'long' });
+                            // Ders isminin yanına eklenecek kısım
+                            examTag = `<small class="ms-2 text-secondary fw-normal" style="font-size: 0.8rem;"> ${dayName} - ${examInfo.examTime}</small>`;
+                        }
+
+                        return `
+<div class="course-card">
+    <div class="course-header" data-bs-toggle="collapse" data-bs-target="#c${i}">
+        <div class="w-100">
+            <div class="course-info-wrapper">
+                <div class="course-title">${c.name}</div>
+                ${examTag ? `<div class="exam-tag">${examTag}</div>` : ''}
             </div>
-        `).join('');
+            <div class="teacher-name mt-1">${c.teacher}</div>
+        </div>
+        <span class="ms-2">▼</span>
+    </div>
+    <div id="c${i}" class="collapse">
+        <div class="topics-list" id="list-${c.name.replace(/\s+/g, '')}"></div>
+    </div>
+</div>`;
+                    }).join('');
+
+                    // Konuları yükleyen fonksiyonu çağır (Daha önce konuştuğumuz loadTopics)
+                    if (typeof loadTopics === "function") loadTopics();
+                });
+            });
 
             // Aktif Dönemi İzle
             onSnapshot(doc(db, "settings", "period"), (doc) => {
@@ -357,32 +441,80 @@
                     document.getElementById('currentPeriodDisplay').innerText = currentPeriod;
                 }
             });
-
-            // Konuları İzle
+        };
+        function loadTopics() {
             onSnapshot(collection(db, "topics"), (snap) => {
-                courses.forEach(c => {
-                    const listEl = document.getElementById(`list-${c.name.replace(/\s+/g, '')}`);
-                    if (listEl) listEl.innerHTML = "";
-                });
+                // Tüm listeleri temizle
+                document.querySelectorAll('.topics-list').forEach(el => el.innerHTML = "");
+
                 snap.forEach(doc => {
                     const data = doc.data();
-                    const list = document.getElementById(`list-${data.courseName.replace(/\s+/g, '')}`);
+                    const listId = `list-${data.courseName.replace(/\s+/g, '')}`;
+                    const list = document.getElementById(listId);
                     if (list) {
                         list.innerHTML += `
-                        <div class="topic-item">
-                            <div>
-                                <span>${data.topicName}</span>
-                                <span class="period-badge">${data.period || "Genel"}</span>
-                            </div>
-                            <span class="btn-delete" onclick="deleteTopic('${doc.id}')">Sil</span>
-                        </div>`;
+                <div class="topic-item">
+                    <div>
+                        <span>${data.topicName}</span>
+                        <span class="period-badge">${data.period || "Genel"}</span>
+                    </div>
+                    <span class="btn-delete" onclick="deleteTopic('${doc.id}')">Sil</span>
+                </div>`;
                     }
                 });
             });
+        }
+
+
+
+        window.processBulkExams = async () => {
+            const input = document.getElementById('bulkExamInput').value;
+            const lines = input.split('\n');
+            let count = 0;
+            let errors = [];
+
+            // Mevcut ders isimlerini bir diziye alalım (Karşılaştırma için)
+            const validCourseNames = courses.map(c => c.name);
+
+            for (let line of lines) {
+                if (line.trim() === "") continue;
+
+                const [course, date, time] = line.split(',').map(item => item.trim());
+
+                // Doğrulama: Ders ismi listede var mı?
+                if (validCourseNames.some(name => name.toLowerCase() === course.toLowerCase())) {
+                    if (date && time) {
+                        try {
+                            await setDoc(doc(db, "examDates", course), {
+                                courseName: course,
+                                examDate: date,
+                                examTime: time,
+                                updatedAt: new Date()
+                            });
+                            count++;
+                        } catch (e) { console.error("Hata:", e); }
+                    }
+                } else {
+                    // Eğer ders ismi listede yoksa hata dizisine ekle
+                    errors.push(course);
+                }
+            }
+
+            // Bildirim Kısmı
+            if (errors.length > 0) {
+                alert(`İşlem Tamamlandı.\n✅ ${count} Sınav Kaydedildi.\n❌ Hatalı Dersler: ${errors.join(", ")}\n(Lütfen ders isimlerinin listedekilerle birebir aynı olduğundan emin olun.)`);
+            } else {
+                alert(`${count} adet sınav başarıyla güncellendi!`);
+            }
+
+            bootstrap.Modal.getInstance(document.getElementById('bulkExamModal')).hide();
+            document.getElementById('bulkExamInput').value = "";
         };
+
+
+
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-
 
 </html>
