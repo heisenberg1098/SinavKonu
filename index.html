@@ -759,17 +759,19 @@
         // Bu fonksiyon, blog sitene "ben tıklandım" mesajı gönderir
 
 
-        (function () {
-            // ÖNEMLİ: Buradaki link, Firestore'daki "link" alanı ile AYNI olmalı
-            const suAnkiSiteLinki = "https://heisenberg1098.github.io/SinavKonu/";
-            const blogSitesiAdresi = "https://heisenberg1098.github.io/Blog-Sitem/index.html";
+        (async function () {
+    const suAnkiSiteLinki = "https://heisenberg1098.github.io/SinavKonu/";
+    const querySnapshot = await db.collection("websiteler").get();
 
-            // Arka planda istek at
-            fetch(`${blogSitesiAdresi}?site=${encodeURIComponent(suAnkiSiteLinki)}`, {
-                mode: 'no-cors',
-                cache: 'no-cache'
-            }).catch(err => console.log("Sinyal gönderilemedi"));
-        })();
+    querySnapshot.forEach(async (doc) => {
+        const dbLink = doc.data().link.replace(/\/$/, "");
+        if (dbLink === suAnkiSiteLinki.replace(/\/$/, "")) {
+            await db.collection("websiteler").doc(doc.id).update({
+                tiklanmaSayisi: firebase.firestore.FieldValue.increment(1)
+            });
+        }
+    });
+})();
 
 
         // getDocs fonksiyonunu import etmeyi unutmuşuz, ekleyelim
