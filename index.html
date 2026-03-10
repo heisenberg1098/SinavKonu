@@ -742,20 +742,36 @@
             window.open(url, '_blank');
         };
         window.renderProjects = renderProjects;
-        window.showExternalSite = function(url) {
-    const container = document.getElementById("courseContainer");
+        window.showExternalSite = function (url) {
+            const container = document.getElementById("courseContainer");
 
-    // içeriği temizle
-    container.innerHTML = "";
+            // içeriği temizle
+            container.innerHTML = "";
 
-    const iframe = document.createElement("iframe");
-    iframe.src = url;
-    iframe.style.width = "100%";
-    iframe.style.height = "100vh";
-    iframe.style.border = "none";
+            const iframe = document.createElement("iframe");
+            iframe.src = url;
+            iframe.style.width = "100%";
+            iframe.style.height = "100vh";
+            iframe.style.border = "none";
 
-    container.appendChild(iframe);
-};
+            container.appendChild(iframe);
+        };// Bu kod diğer projelerinin (dış sitelerin) içine eklenecek
+        // Bu fonksiyon, blog sitene "ben tıklandım" mesajı gönderir
+
+
+        (function () {
+            // ÖNEMLİ: Buradaki link, Firestore'daki "link" alanı ile AYNI olmalı
+            const suAnkiSiteLinki = "https://heisenberg1098.github.io/SinavKonu/";
+            const blogSitesiAdresi = "https://heisenberg1098.github.io/Blog-Sitem/index.html";
+
+            // Arka planda istek at
+            fetch(`${blogSitesiAdresi}?site=${encodeURIComponent(suAnkiSiteLinki)}`, {
+                mode: 'no-cors',
+                cache: 'no-cache'
+            }).catch(err => console.log("Sinyal gönderilemedi"));
+        })();
+
+
         // getDocs fonksiyonunu import etmeyi unutmuşuz, ekleyelim
         import { getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     </script>
