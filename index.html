@@ -417,6 +417,9 @@
                 <div class="modal-body p-4">
                     <p class="small text-muted mb-3">Her satıra bir sınav gelecek şekilde şu formatta yazın:<br> <b>Ders
                             İsmi, YYYY-MM-DD, Saat</b> (Örn: Matematik, 2025-12-25, 3. Ders)</p>
+                    <button id="copyPromptBtn" class="btn btn-sm" style="background-color: var(--secondary-color); color: var(--primary-color); font-weight: 600; border-radius: 8px;" onclick="copyPromptText()">
+                            <i class="bi bi-clipboard"></i> 📄 Prompt'u Kopyala
+                        </button>
                     <textarea id="bulkExamInput" class="form-control" rows="10"
                         placeholder="Türk Dili ve Edebiyatı, 2025-12-22, 7. Ders&#10;Yabancı Dil, 2025-12-23, 5. Ders"></textarea>
                     <button class="btn btn-add w-100 mt-3 py-2" onclick="processBulkExams()">Takvimi Güncelle</button>
@@ -551,6 +554,45 @@
                 console.error("Kayıt hatası:", error);
                 alert("Kaydedilirken hata oluştu: " + error.message);
             }
+        };// Prompt Kopyalama Fonksiyonu
+        window.copyPromptText = function() {
+            // BACKTICK (`) İŞARETLERİ ARASINDAKİ METNİ İSTEDİĞİN GİBİ DEĞİŞTİREBİLİRSİN
+            const promptMetni = `# ROLE & TASK
+You are an expert data parsing assistant. Your task is to extract exam schedule data from the provided school document and format it strictly for a database/system input.
+
+# FILTER CRITERIA
+- Extract ONLY exams belonging to Grade 12 (12. Sınıf) and the Technical program (Teknik).
+- Ignore all other grades, vocational (Meslek) specific courses, or generic exam announcements.
+
+# DATA FORMATTING RULES
+1. Course Name: Clean any trailing system tags like "(Teknik)", "(Meslek, Teknik)". Use the raw course name.
+2. Date: Convert dates to strict YYYY-MM-DD ISO format (e.g., 08.06.2026 -> 2026-06-08).
+3. Period: Format as "[X]. Ders" based on the grid matching.
+
+# STRICT OUTPUT FORMAT
+- Every single exam entry MUST be on a brand new line. 
+- Do NOT bundle them in a single paragraph. 
+- The syntax per line must be exactly: [Course Name], [YYYY-MM-DD], [X]. Ders`;
+
+            navigator.clipboard.writeText(promptMetni).then(() => {
+                const btn = document.getElementById('copyPromptBtn');
+                const originalHTML = btn.innerHTML;
+                
+                // Kopyalandı efekti
+                btn.innerHTML = "✅ Kopyalandı!";
+                btn.style.backgroundColor = "#28a745"; // Bootstrap success yeşili
+                btn.style.color = "white";
+                
+                // 2 saniye sonra eski haline döndür
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.style.backgroundColor = "var(--secondary-color)";
+                    btn.style.color = "var(--primary-color)";
+                }, 2000);
+            }).catch(err => {
+                console.error('Kopyalama hatası: ', err);
+                alert("Metin kopyalanamadı. Tarayıcı izinlerini kontrol edin.");
+            });
         };
 
         // Proje butonlarını render et (ilgili derslerde)
